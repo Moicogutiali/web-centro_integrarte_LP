@@ -1,0 +1,8 @@
+{
+  "name": "INTEGRARSE - Centro de Conciliación y Arbitraje",
+  "description": "Plataforma profesional para el acceso a la justicia rápida y efectiva en Bolivia, ofreciendo servicios de conciliación, arbitraje y capacitación judicial autorizados por el Gobierno.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
