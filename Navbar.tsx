@@ -27,7 +27,7 @@ const Navbar: React.FC = () => {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden xl:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-6">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
@@ -49,7 +49,7 @@ const Navbar: React.FC = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="xl:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+            className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             <span className="material-symbols-outlined">{isMenuOpen ? 'close' : 'menu'}</span>
@@ -59,7 +59,7 @@ const Navbar: React.FC = () => {
 
       {/* Mobile Nav Dropdown */}
       {isMenuOpen && (
-        <div className="xl:hidden bg-white border-b border-slate-200 p-4 space-y-3 animate-fade-in-down">
+        <div className="lg:hidden bg-white border-b border-slate-200 p-4 space-y-3 animate-fade-in-down">
           {navLinks.map((link) => (
             <Link
               key={link.path}
