@@ -9,11 +9,12 @@ const Navbar: React.FC = () => {
 
   const navLinks = [
     { name: 'Inicio', path: '/' },
+    { name: 'Capacitación 🎓', path: '/capacitacion' },
     { name: 'Servicios', path: '/servicios' },
     { name: 'Profesionales', path: '/profesionales' },
     { name: 'Asistente IA', path: '/asistente' },
     { name: 'Dashboard', path: '/dashboard' },
-  ];
+  ]; // v2-cache-bust
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -26,20 +27,19 @@ const Navbar: React.FC = () => {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden xl:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-6">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className={`text-sm font-bold transition-all px-3 py-1.5 rounded-lg ${
-                  isActive(link.path) ? 'text-primary bg-primary/5' : 'text-slate-600 hover:text-primary hover:bg-slate-50'
-                }`}
+                className={`text-sm font-bold transition-all px-3 py-1.5 rounded-lg ${isActive(link.path) ? 'text-primary bg-primary/5' : 'text-slate-600 hover:text-primary hover:bg-slate-50'
+                  }`}
               >
                 {link.name}
               </Link>
             ))}
-            <Link 
-              to="/solicitud" 
+            <Link
+              to="/solicitud"
               className="bg-primary hover:bg-blue-600 text-white text-xs font-black uppercase tracking-widest py-3 px-6 rounded-xl transition-all shadow-md shadow-primary/20 flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-[18px]">gavel</span>
@@ -48,8 +48,8 @@ const Navbar: React.FC = () => {
           </nav>
 
           {/* Mobile Menu Button */}
-          <button 
-            className="xl:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+          <button
+            className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             <span className="material-symbols-outlined">{isMenuOpen ? 'close' : 'menu'}</span>
@@ -59,21 +59,20 @@ const Navbar: React.FC = () => {
 
       {/* Mobile Nav Dropdown */}
       {isMenuOpen && (
-        <div className="xl:hidden bg-white border-b border-slate-200 p-4 space-y-3 animate-fade-in-down">
+        <div className="lg:hidden bg-white border-b border-slate-200 p-4 space-y-3 animate-fade-in-down">
           {navLinks.map((link) => (
             <Link
               key={link.path}
               to={link.path}
-              className={`block text-base font-semibold px-4 py-2 rounded-lg ${
-                isActive(link.path) ? 'bg-primary/10 text-primary' : 'text-slate-600'
-              }`}
+              className={`block text-base font-semibold px-4 py-2 rounded-lg ${isActive(link.path) ? 'bg-primary/10 text-primary' : 'text-slate-600'
+                }`}
               onClick={() => setIsMenuOpen(false)}
             >
               {link.name}
             </Link>
           ))}
-          <Link 
-            to="/solicitud" 
+          <Link
+            to="/solicitud"
             className="block w-full text-center bg-primary text-white font-bold py-3 rounded-lg"
             onClick={() => setIsMenuOpen(false)}
           >
