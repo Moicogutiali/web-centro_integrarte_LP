@@ -32,9 +32,10 @@ git push -u origin main
    - `SUPABASE_ANON_KEY`: La llave anónima de tu proyecto de Supabase.
 5. Haz clic en **"Deploy"**.
 
-## 🛠️ Tecnologías Utilizadas
+## 🛠️ Tecnologías Utilizadas web
 - **React 19** & **TypeScript**
 - **Vite** (Build Tool)
 - **Supabase** (Database & Auth)
 - **Google Gemini API** (IA Assistant)
 - **Tailwind CSS** (Styling)
+- 
