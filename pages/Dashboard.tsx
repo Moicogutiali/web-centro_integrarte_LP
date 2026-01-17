@@ -13,6 +13,18 @@ interface RealCase {
   created_at: string;
 }
 
+interface Course {
+  id: string;
+  title: string;
+  tag: string;
+  instructor: string;
+  date_string: string;
+  time_string: string;
+  price: string;
+  is_free: boolean;
+  img_url: string;
+}
+
 interface CourseRegistration {
   id: string;
   course_id: string;
@@ -38,12 +50,18 @@ const Dashboard: React.FC = () => {
   const [password, setPassword] = useState('');
   const [cases, setCases] = useState<RealCase[]>([]);
   const [registrations, setRegistrations] = useState<CourseRegistration[]>([]);
-  const [activeTab, setActiveTab] = useState<'cases' | 'courses'>('cases');
+  const [coursesList, setCoursesList] = useState<Course[]>([]);
+  const [activeTab, setActiveTab] = useState<'cases' | 'registrations' | 'courses'>('cases');
   const [loading, setLoading] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [dbStatus, setDbStatus] = useState<'online' | 'offline' | 'checking'>('checking');
   const [selectedCase, setSelectedCase] = useState<RealCase | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [courseFormData, setCourseFormData] = useState<Partial<Course>>({
+    title: '', tag: '', instructor: '', date_string: '', time_string: '', price: '', is_free: false, img_url: ''
+  });
 
   useEffect(() => {
     // Verificar sesión activa
@@ -64,6 +82,7 @@ const Dashboard: React.FC = () => {
     if (isAuthenticated) {
       fetchCases();
       fetchRegistrations();
+      fetchCoursesList();
     }
   }, [isAuthenticated]);
 
@@ -110,6 +129,66 @@ const Dashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchCoursesList = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      setCoursesList((data as Course[]) || []);
+    } catch (err: any) {
+      console.error("Fetch courses error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveCourse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsUpdating(true);
+    try {
+      if (selectedCourse) {
+        // Update
+        const { error } = await supabase.from('courses').update(courseFormData).eq('id', selectedCourse.id);
+        if (error) throw error;
+      } else {
+        // Create
+        const { error } = await supabase.from('courses').insert([courseFormData]);
+        if (error) throw error;
+      }
+      fetchCoursesList();
+      setIsCourseModalOpen(false);
+    } catch (err: any) {
+      alert("Error al guardar curso: " + err.message);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDeleteCourse = async (id: string) => {
+    if (!confirm("¿Estás seguro de eliminar este curso? Se perderán las referencias de inscripciones.")) return;
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase.from('courses').delete().eq('id', id);
+      if (error) throw error;
+      fetchCoursesList();
+    } catch (err: any) {
+      alert("Error al eliminar curso: " + err.message);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const openCourseModal = (course?: Course) => {
+    if (course) {
+      setSelectedCourse(course);
+      setCourseFormData({ ...course });
+    } else {
+      setSelectedCourse(null);
+      setCourseFormData({ title: '', tag: 'DIPLOMADO', instructor: '', date_string: '', time_string: '', price: '', is_free: false, img_url: '' });
+    }
+    setIsCourseModalOpen(true);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -235,7 +314,14 @@ const Dashboard: React.FC = () => {
               <button onClick={handleLogout} className="px-6 py-3 border border-slate-200 text-slate-500 font-bold rounded-2xl hover:bg-white transition-all">
                 <span className="material-symbols-outlined text-sm align-middle mr-1">logout</span> Salir
               </button>
-              <button onClick={activeTab === 'cases' ? fetchCases : fetchRegistrations} className="bg-primary text-white font-black px-8 py-3 rounded-2xl shadow-lg shadow-primary/20 flex items-center gap-2 hover:scale-105 transition-all">
+              <button
+                onClick={() => {
+                  if (activeTab === 'cases') fetchCases();
+                  else if (activeTab === 'registrations') fetchRegistrations();
+                  else fetchCoursesList();
+                }}
+                className="bg-primary text-white font-black px-8 py-3 rounded-2xl shadow-lg shadow-primary/20 flex items-center gap-2 hover:scale-105 transition-all"
+              >
                 <span className="material-symbols-outlined text-sm">sync</span> Sincronizar
               </button>
             </div>
@@ -256,7 +342,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Tab Switcher */}
-          <div className="flex gap-2 p-1 bg-slate-100/50 w-fit rounded-2xl border border-slate-100">
+          <div className="flex flex-wrap gap-2 p-1 bg-slate-100/50 w-fit rounded-2xl border border-slate-100">
             <button
               onClick={() => setActiveTab('cases')}
               className={`px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'cases' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'
@@ -265,11 +351,18 @@ const Dashboard: React.FC = () => {
               Expedientes
             </button>
             <button
-              onClick={() => setActiveTab('courses')}
-              className={`px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'courses' ? 'bg-white text-gold shadow-sm' : 'text-slate-400 hover:text-slate-600'
+              onClick={() => setActiveTab('registrations')}
+              className={`px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'registrations' ? 'bg-white text-gold shadow-sm' : 'text-slate-400 hover:text-slate-600'
                 }`}
             >
               Inscripciones
+            </button>
+            <button
+              onClick={() => setActiveTab('courses')}
+              className={`px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'courses' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'
+                }`}
+            >
+              Gestión de Cursos
             </button>
           </div>
 
@@ -313,7 +406,7 @@ const Dashboard: React.FC = () => {
                     ))}
                   </tbody>
                 </table>
-              ) : (
+              ) : activeTab === 'registrations' ? (
                 <table className="w-full text-left">
                   <thead>
                     <tr className="bg-slate-50/50">
@@ -352,6 +445,44 @@ const Dashboard: React.FC = () => {
                     ))}
                   </tbody>
                 </table>
+              ) : (
+                <div className="p-8 space-y-8">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-lg font-bold text-secondary">Catálogo de Oferta Académica</h2>
+                    <button
+                      onClick={() => openCourseModal()}
+                      className="bg-primary text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:scale-105 transition-all shadow-lg"
+                    >
+                      <span className="material-symbols-outlined text-sm">add_circle</span> Nuevo Curso
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {coursesList.map(course => (
+                      <div key={course.id} className="bg-slate-50 rounded-3xl p-6 border border-slate-100 space-y-4 hover:shadow-md transition-all relative group">
+                        <div className="flex justify-between items-start">
+                          <span className="px-3 py-1 bg-white text-primary rounded-lg text-[9px] font-black uppercase">{course.tag}</span>
+                          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => openCourseModal(course)} className="size-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-200">
+                              <span className="material-symbols-outlined text-sm">edit</span>
+                            </button>
+                            <button onClick={() => handleDeleteCourse(course.id)} className="size-8 bg-red-100 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-200">
+                              <span className="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                          </div>
+                        </div>
+                        <h4 className="font-bold text-secondary leading-tight">{course.title}</h4>
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-slate-500 font-medium">Instructor: {course.instructor}</p>
+                          <p className="text-[10px] text-slate-500 font-medium">Fecha: {course.date_string}</p>
+                        </div>
+                        <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
+                          <p className="font-black text-slate-900 text-sm">{course.price}</p>
+                          {course.is_free && <span className="text-[9px] font-black text-green-600 uppercase">Gratuito</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -425,6 +556,60 @@ const Dashboard: React.FC = () => {
                 Cerrar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {isCourseModalOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-secondary/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-slide-in-up">
+            <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h3 className="text-xl font-bold text-secondary">{selectedCourse ? 'Editar Curso' : 'Crear Nuevo Curso'}</h3>
+              <button onClick={() => setIsCourseModalOpen(false)} className="material-symbols-outlined text-slate-400 hover:text-secondary">close</button>
+            </div>
+            <form onSubmit={handleSaveCourse} className="p-8 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2 space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-400">Título del Programa</label>
+                  <input required value={courseFormData.title} onChange={e => setCourseFormData({ ...courseFormData, title: e.target.value })} className="w-full h-12 rounded-xl border-slate-200" placeholder="Ej: Diplomado en Arbitraje" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-400">Categoría</label>
+                  <select value={courseFormData.tag} onChange={e => setCourseFormData({ ...courseFormData, tag: e.target.value })} className="w-full h-12 rounded-xl border-slate-200">
+                    <option>DIPLOMADO</option>
+                    <option>TALLER</option>
+                    <option>SEMINARIO</option>
+                    <option>CURSO</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-400">Instructor / Dr.</label>
+                  <input required value={courseFormData.instructor} onChange={e => setCourseFormData({ ...courseFormData, instructor: e.target.value })} className="w-full h-12 rounded-xl border-slate-200" placeholder="Nombre del docente" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-400">Fecha de Inicio</label>
+                  <input required value={courseFormData.date_string} onChange={e => setCourseFormData({ ...courseFormData, date_string: e.target.value })} className="w-full h-12 rounded-xl border-slate-200" placeholder="Ej: 15 de Octubre" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-400">Horario</label>
+                  <input required value={courseFormData.time_string} onChange={e => setCourseFormData({ ...courseFormData, time_string: e.target.value })} className="w-full h-12 rounded-xl border-slate-200" placeholder="Ej: 19:00 - 21:00" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-400">Inversión (BS)</label>
+                  <input required value={courseFormData.price} onChange={e => setCourseFormData({ ...courseFormData, price: e.target.value })} className="w-full h-12 rounded-xl border-slate-200" placeholder="Ej: 800 BS" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-400">Imagen (URL Unsplash)</label>
+                  <input required value={courseFormData.img_url} onChange={e => setCourseFormData({ ...courseFormData, img_url: e.target.value })} className="w-full h-12 rounded-xl border-slate-200" placeholder="https://..." />
+                </div>
+                <div className="col-span-2 flex items-center gap-3 py-2">
+                  <input type="checkbox" checked={courseFormData.is_free} onChange={e => setCourseFormData({ ...courseFormData, is_free: e.target.checked })} className="size-5 rounded border-slate-300 text-primary focus:ring-primary" id="is_free" />
+                  <label htmlFor="is_free" className="text-sm font-bold text-secondary cursor-pointer">Marcar como curso gratuito</label>
+                </div>
+              </div>
+              <button type="submit" disabled={isUpdating} className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-xl hover:scale-[1.02] transition-all uppercase tracking-widest text-xs">
+                {isUpdating ? 'Procesando...' : 'Guardar Programa Académico'}
+              </button>
+            </form>
           </div>
         </div>
       )}
