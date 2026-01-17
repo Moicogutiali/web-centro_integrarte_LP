@@ -13,6 +13,18 @@ interface RealCase {
   created_at: string;
 }
 
+interface CourseRegistration {
+  id: string;
+  course_id: string;
+  full_name: string;
+  ci: string;
+  phone: string;
+  created_at: string;
+  courses: {
+    title: string;
+  };
+}
+
 interface StatItem {
   label: string;
   val: number;
@@ -25,6 +37,8 @@ const Dashboard: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [cases, setCases] = useState<RealCase[]>([]);
+  const [registrations, setRegistrations] = useState<CourseRegistration[]>([]);
+  const [activeTab, setActiveTab] = useState<'cases' | 'courses'>('cases');
   const [loading, setLoading] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [dbStatus, setDbStatus] = useState<'online' | 'offline' | 'checking'>('checking');
@@ -49,6 +63,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     if (isAuthenticated) {
       fetchCases();
+      fetchRegistrations();
     }
   }, [isAuthenticated]);
 
@@ -66,6 +81,31 @@ const Dashboard: React.FC = () => {
       setDbStatus('online');
     } catch (err: any) {
       console.error("Fetch error:", err);
+      setDbStatus('offline');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRegistrations = async () => {
+    try {
+      setLoading(true);
+      setDbStatus('checking');
+      const { data, error } = await supabase
+        .from('course_registrations')
+        .select(`
+          *,
+          courses (
+            title
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setRegistrations((data as any[]) || []);
+      setDbStatus('online');
+    } catch (err: any) {
+      console.error("Fetch registrations error:", err);
       setDbStatus('offline');
     } finally {
       setLoading(false);
@@ -171,8 +211,8 @@ const Dashboard: React.FC = () => {
 
   const stats: StatItem[] = [
     { label: 'Casos en Trámite', val: casesPendingCount, icon: 'pending_actions', color: 'text-primary' },
-    { label: 'Casos Resueltos', val: casesResolvedCount, icon: 'check_circle', color: 'text-green-600' },
-    { label: 'Total Expedientes', val: cases.length, icon: 'folder_zip', color: 'text-gold' }
+    { label: 'Total Expedientes', val: cases.length, icon: 'folder_zip', color: 'text-slate-600' },
+    { label: 'Inscritos a Cursos', val: registrations.length, icon: 'school', color: 'text-gold' }
   ];
 
   return (
@@ -189,13 +229,13 @@ const Dashboard: React.FC = () => {
                   {dbStatus === 'online' ? 'Servidor Conectado' : 'Error DB'}
                 </div>
               </div>
-              <p className="text-slate-400 text-sm font-medium">Bandeja de entrada y control de expedientes digitales.</p>
+              <p className="text-slate-400 text-sm font-medium">Bandeja de entrada y control institucional.</p>
             </div>
             <div className="flex gap-4">
               <button onClick={handleLogout} className="px-6 py-3 border border-slate-200 text-slate-500 font-bold rounded-2xl hover:bg-white transition-all">
                 <span className="material-symbols-outlined text-sm align-middle mr-1">logout</span> Salir
               </button>
-              <button onClick={fetchCases} className="bg-primary text-white font-black px-8 py-3 rounded-2xl shadow-lg shadow-primary/20 flex items-center gap-2 hover:scale-105 transition-all">
+              <button onClick={activeTab === 'cases' ? fetchCases : fetchRegistrations} className="bg-primary text-white font-black px-8 py-3 rounded-2xl shadow-lg shadow-primary/20 flex items-center gap-2 hover:scale-105 transition-all">
                 <span className="material-symbols-outlined text-sm">sync</span> Sincronizar
               </button>
             </div>
@@ -215,45 +255,104 @@ const Dashboard: React.FC = () => {
             ))}
           </div>
 
+          {/* Tab Switcher */}
+          <div className="flex gap-2 p-1 bg-slate-100/50 w-fit rounded-2xl border border-slate-100">
+            <button
+              onClick={() => setActiveTab('cases')}
+              className={`px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'cases' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'
+                }`}
+            >
+              Expedientes
+            </button>
+            <button
+              onClick={() => setActiveTab('courses')}
+              className={`px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'courses' ? 'bg-white text-gold shadow-sm' : 'text-slate-400 hover:text-slate-600'
+                }`}
+            >
+              Inscripciones
+            </button>
+          </div>
+
           <div className="bg-white rounded-[3rem] shadow-xl border border-slate-100 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-slate-50/50">
-                    <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Solicitante</th>
-                    <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Materia / Asunto</th>
-                    <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Estado Actual</th>
-                    <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Acción</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {cases.length === 0 && !loading && (
-                    <tr><td colSpan={4} className="p-20 text-center text-slate-300 italic">No hay solicitudes registradas aún.</td></tr>
-                  )}
-                  {cases.map((record: RealCase) => (
-                    <tr key={record.id} className="hover:bg-slate-50/40 transition-colors">
-                      <td className="px-10 py-8">
-                        <p className="font-bold text-secondary text-lg">{record.full_name}</p>
-                        <p className="text-[10px] font-black text-slate-400 uppercase">{new Date(record.created_at).toLocaleDateString('es-BO', { day: 'numeric', month: 'long' })}</p>
-                      </td>
-                      <td className="px-10 py-8">
-                        <span className="px-3 py-1 bg-blue-50 text-primary rounded-lg text-xs font-bold">{record.subject}</span>
-                      </td>
-                      <td className="px-10 py-8 text-center">
-                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${record.status === 'Resuelto' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'
-                          }`}>
-                          {record.status}
-                        </span>
-                      </td>
-                      <td className="px-10 py-8 text-right">
-                        <button onClick={() => setSelectedCase(record)} className="bg-secondary text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all shadow-md">
-                          Gestionar
-                        </button>
-                      </td>
+              {activeTab === 'cases' ? (
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-slate-50/50">
+                      <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Solicitante</th>
+                      <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Materia / Asunto</th>
+                      <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Estado Actual</th>
+                      <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Acción</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {cases.length === 0 && !loading && (
+                      <tr><td colSpan={4} className="p-20 text-center text-slate-300 italic">No hay solicitudes registradas aún.</td></tr>
+                    )}
+                    {cases.map((record: RealCase) => (
+                      <tr key={record.id} className="hover:bg-slate-50/40 transition-colors">
+                        <td className="px-10 py-8">
+                          <p className="font-bold text-secondary text-lg">{record.full_name}</p>
+                          <p className="text-[10px] font-black text-slate-400 uppercase">{new Date(record.created_at).toLocaleDateString('es-BO', { day: 'numeric', month: 'long' })}</p>
+                        </td>
+                        <td className="px-10 py-8">
+                          <span className="px-3 py-1 bg-blue-50 text-primary rounded-lg text-xs font-bold">{record.subject}</span>
+                        </td>
+                        <td className="px-10 py-8 text-center">
+                          <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${record.status === 'Resuelto' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}>
+                            {record.status}
+                          </span>
+                        </td>
+                        <td className="px-10 py-8 text-right">
+                          <button onClick={() => setSelectedCase(record)} className="bg-secondary text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all shadow-md">
+                            Gestionar
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-slate-50/50">
+                      <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Alumno / Inscrito</th>
+                      <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Curso Solicitado</th>
+                      <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Celular</th>
+                      <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Contacto</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {registrations.length === 0 && !loading && (
+                      <tr><td colSpan={4} className="p-20 text-center text-slate-300 italic">No hay inscritos aún.</td></tr>
+                    )}
+                    {registrations.map((reg: CourseRegistration) => (
+                      <tr key={reg.id} className="hover:bg-slate-50/40 transition-colors">
+                        <td className="px-10 py-8">
+                          <p className="font-bold text-secondary text-lg">{reg.full_name}</p>
+                          <p className="text-[10px] font-black text-slate-400 uppercase whitespace-nowrap">CI: {reg.ci} • {new Date(reg.created_at).toLocaleDateString('es-BO')}</p>
+                        </td>
+                        <td className="px-10 py-8">
+                          <span className="px-3 py-1 bg-gold/10 text-gold-700 rounded-lg text-xs font-bold">{reg.courses?.title || 'Curso eliminado'}</span>
+                        </td>
+                        <td className="px-10 py-8 text-center">
+                          <p className="text-secondary font-bold">{reg.phone}</p>
+                        </td>
+                        <td className="px-10 py-8 text-right">
+                          <a
+                            href={`https://wa.me/${reg.phone.replace(/\D/g, '')}`}
+                            target="_blank"
+                            className="inline-flex items-center gap-2 bg-[#25D366] text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-md"
+                          >
+                            WhatsApp
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </div>
