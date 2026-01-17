@@ -29,7 +29,7 @@ const Training: React.FC = () => {
 
   const fetchCourses = async () => {
     const { data } = await supabase.from('courses').select('*');
-    if (data) setCourses(data);
+    if (data) setCourses(data as Course[]);
   };
 
   const handleRegister = (course: Course) => {
@@ -84,7 +84,7 @@ const Training: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {courses.map((c) => (
+          {courses.map((c: Course) => (
             <div key={c.id} className="flex flex-col bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl transition-all overflow-hidden group">
               <div className="relative h-56 overflow-hidden">
                 <img src={c.img_url} alt={c.title} className="w-full h-full object-cover" />
@@ -125,11 +125,11 @@ const Training: React.FC = () => {
               <form onSubmit={handleConfirmRegistration} className="p-10 space-y-6">
                 <div className="flex justify-between items-center">
                    <h3 className="font-bold text-secondary">Inscripción: {selectedCourse.title}</h3>
-                   <button onClick={() => setShowModal(false)} className="material-symbols-outlined">close</button>
+                   <button type="button" onClick={() => setShowModal(false)} className="material-symbols-outlined">close</button>
                 </div>
-                <input required placeholder="Nombre Completo" className="w-full h-12 rounded-xl border-slate-200" onChange={e => setRegData({...regData, name: e.target.value})} />
-                <input required placeholder="Cédula de Identidad" className="w-full h-12 rounded-xl border-slate-200" onChange={e => setRegData({...regData, ci: e.target.value})} />
-                <input required placeholder="Celular" className="w-full h-12 rounded-xl border-slate-200" onChange={e => setRegData({...regData, phone: e.target.value})} />
+                <input required placeholder="Nombre Completo" className="w-full h-12 rounded-xl border-slate-200" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegData({...regData, name: e.target.value})} />
+                <input required placeholder="Cédula de Identidad" className="w-full h-12 rounded-xl border-slate-200" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegData({...regData, ci: e.target.value})} />
+                <input required placeholder="Celular" className="w-full h-12 rounded-xl border-slate-200" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegData({...regData, phone: e.target.value})} />
                 <button type="submit" disabled={isSubmitting} className="w-full py-5 bg-primary text-white font-black rounded-2xl">
                   {isSubmitting ? 'Procesando...' : 'Confirmar Inscripción'}
                 </button>

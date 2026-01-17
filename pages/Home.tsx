@@ -2,7 +2,31 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+interface ServiceItem {
+  title: string;
+  icon: string;
+  desc: string;
+}
+
+interface StatItem {
+  n: string;
+  label: string;
+}
+
 const Home: React.FC = () => {
+  const services: ServiceItem[] = [
+    { title: 'Conciliación', icon: 'diversity_3', desc: 'Acuerdos voluntarios con calidad de sentencia judicial firme.' },
+    { title: 'Arbitraje', icon: 'gavel', desc: 'Resolución de controversias por expertos técnicos especializados.' },
+    { title: 'Capacitación', icon: 'school', desc: 'Formación continua para abogados y operadores de justicia.' }
+  ];
+
+  const stats: StatItem[] = [
+    { n: '100%', label: 'Legalidad' },
+    { n: '+500', label: 'Empresas' },
+    { n: '24h', label: 'Respuesta' },
+    { n: '80%', label: 'Menos Costo' }
+  ];
+
   return (
     <div className="w-full flex flex-col">
       {/* Hero Section */}
@@ -65,11 +89,7 @@ const Home: React.FC = () => {
           <p className="text-slate-500 max-w-2xl mx-auto">Mecanismos modernos de resolución de conflictos diseñados para ahorrar tiempo y recursos.</p>
         </div>
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            { title: 'Conciliación', icon: 'diversity_3', desc: 'Acuerdos voluntarios con calidad de sentencia judicial firme.' },
-            { title: 'Arbitraje', icon: 'gavel', desc: 'Resolución de controversias por expertos técnicos especializados.' },
-            { title: 'Capacitación', icon: 'school', desc: 'Formación continua para abogados y operadores de justicia.' }
-          ].map((s, i) => (
+          {services.map((s: ServiceItem, i: number) => (
             <div key={i} className="bg-white p-10 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group">
               <div className="size-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-8 group-hover:bg-primary group-hover:text-white transition-colors">
                 <span className="material-symbols-outlined text-3xl">{s.icon}</span>
@@ -91,12 +111,7 @@ const Home: React.FC = () => {
         </div>
         <div className="max-w-7xl mx-auto px-4 relative z-10">
            <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
-              {[
-                { n: '100%', label: 'Legalidad' },
-                { n: '+500', label: 'Empresas' },
-                { n: '24h', label: 'Respuesta' },
-                { n: '80%', label: 'Menos Costo' }
-              ].map((stat, i) => (
+              {stats.map((stat: StatItem, i: number) => (
                 <div key={i} className="space-y-2">
                   <div className="text-5xl font-black text-gold italic">{stat.n}</div>
                   <div className="text-slate-400 font-bold uppercase tracking-widest text-xs">{stat.label}</div>

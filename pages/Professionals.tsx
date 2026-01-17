@@ -1,18 +1,24 @@
-
 import React, { useState } from 'react';
+
+interface Specialist {
+  name: string;
+  role: string;
+  specialty: string;
+  img: string;
+}
 
 const Professionals: React.FC = () => {
   const [filter, setFilter] = useState('Todos');
 
-  const specialists = [
+  const specialists: Specialist[] = [
     { name: 'Dr. Ricardo Vaca', role: 'Árbitro Senior', specialty: 'Comercial', img: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200&h=200' },
     { name: 'Dra. Beatriz Luna', role: 'Conciliadora', specialty: 'Familiar', img: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200&h=200' },
     { name: 'Dr. Marco Antonio Soliz', role: 'Especialista', specialty: 'Civil', img: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200&h=200' },
     { name: 'Dra. Claudia Terán', role: 'Árbitro', specialty: 'Comercial', img: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=200&h=200' },
     { name: 'Abg. Sergio Mendez', role: 'Conciliador', specialty: 'Laboral', img: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=200&h=200' },
     { name: 'Dra. Patricia Ortiz', role: 'Especialista', specialty: 'Familiar', img: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&q=80&w=200&h=200' },
-    // Mocking the high number of professionals
-    ...Array(54).fill(0).map((_, i) => ({
+    // Generación dinámica con tipos explícitos
+    ...Array(54).fill(0).map((_, i: number): Specialist => ({
       name: `Especialista Jurídico ${i + 7}`,
       role: i % 2 === 0 ? 'Árbitro' : 'Conciliador',
       specialty: ['Civil', 'Comercial', 'Familiar', 'Laboral'][i % 4],
@@ -20,7 +26,7 @@ const Professionals: React.FC = () => {
     }))
   ];
 
-  const filtered = filter === 'Todos' ? specialists : specialists.filter(s => s.specialty === filter);
+  const filtered = filter === 'Todos' ? specialists : specialists.filter((s: Specialist) => s.specialty === filter);
 
   return (
     <div className="bg-background-light py-16 px-4 min-h-screen">
@@ -34,7 +40,7 @@ const Professionals: React.FC = () => {
 
         {/* Filters */}
         <div className="flex flex-wrap justify-center gap-3">
-          {['Todos', 'Civil', 'Comercial', 'Familiar', 'Laboral'].map(f => (
+          {['Todos', 'Civil', 'Comercial', 'Familiar', 'Laboral'].map((f: string) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -47,7 +53,7 @@ const Professionals: React.FC = () => {
 
         {/* Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {filtered.map((s, i) => (
+          {filtered.map((s: Specialist, i: number) => (
             <div key={i} className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-xl transition-all group text-center">
               <div className="relative size-24 mx-auto mb-4">
                 <img src={s.img} alt={s.name} className="size-full rounded-2xl object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />

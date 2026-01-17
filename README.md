@@ -38,4 +38,3 @@ git push -u origin main
 - **Supabase** (Database & Auth)
 - **Google Gemini API** (IA Assistant)
 - **Tailwind CSS** (Styling)
-

@@ -37,7 +37,6 @@ const SolicitudForm: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Guardar en Supabase
       const { error } = await supabase.from('cases').insert([{
         full_name: formData.nombre,
         ci: formData.ci,
@@ -75,7 +74,7 @@ const SolicitudForm: React.FC = () => {
 
         {/* Stepper */}
         <div className="flex justify-center items-center gap-4 py-8">
-          {[1, 2, 3].map((s) => (
+          {[1, 2, 3].map((s: number) => (
             <React.Fragment key={s}>
               <div className={`size-10 rounded-full flex items-center justify-center font-bold transition-all ${step >= s ? 'bg-primary text-white shadow-lg' : 'bg-white text-slate-300 border border-slate-200'}`}>
                 {step > s ? <span className="material-symbols-outlined">check</span> : s}

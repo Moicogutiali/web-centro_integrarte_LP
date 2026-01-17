@@ -3,6 +3,10 @@ import React from 'react';
 import Logo from './Logo';
 
 const Footer: React.FC = () => {
+  const socialIcons: string[] = ['facebook', 'linkedin', 'instagram', 'youtube'];
+  const services: string[] = ['Conciliación Familiar', 'Arbitraje de Inversión', 'Capacitación a Empresas', 'Asesoría Pro-Bono'];
+  const bottomLinks: string[] = ['Términos de Uso', 'Protección de Datos', 'Mapa del Sitio'];
+
   return (
     <footer className="bg-secondary text-white pt-20 pb-10 border-t-4 border-gold relative overflow-hidden">
       {/* Elemento decorativo floral en marca de agua */}
@@ -19,7 +23,7 @@ const Footer: React.FC = () => {
               El Centro de Conciliación y Arbitraje <strong>INTEGRARSE</strong> es una institución boliviana líder en la promoción de la cultura de paz y justicia efectiva.
             </p>
             <div className="flex gap-4">
-              {['facebook', 'linkedin', 'instagram', 'youtube'].map(icon => (
+              {socialIcons.map((icon: string) => (
                 <a key={icon} href="#" className="size-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all border border-white/10">
                   <span className="material-symbols-outlined text-xl italic">{icon}</span>
                 </a>
@@ -50,18 +54,11 @@ const Footer: React.FC = () => {
           <div className="flex flex-col gap-6">
             <h4 className="text-sm font-black text-gold uppercase tracking-[0.2em]">Servicios</h4>
             <nav className="flex flex-col gap-3 text-slate-400 text-sm font-bold">
-              <a href="#" className="hover:text-white transition-colors flex items-center gap-2">
-                <div className="size-1.5 rounded-full bg-primary"></div> Conciliación Familiar
-              </a>
-              <a href="#" className="hover:text-white transition-colors flex items-center gap-2">
-                <div className="size-1.5 rounded-full bg-primary"></div> Arbitraje de Inversión
-              </a>
-              <a href="#" className="hover:text-white transition-colors flex items-center gap-2">
-                <div className="size-1.5 rounded-full bg-primary"></div> Capacitación a Empresas
-              </a>
-              <a href="#" className="hover:text-white transition-colors flex items-center gap-2">
-                <div className="size-1.5 rounded-full bg-primary"></div> Asesoría Pro-Bono
-              </a>
+              {services.map((s: string) => (
+                <a key={s} href="#" className="hover:text-white transition-colors flex items-center gap-2">
+                  <div className="size-1.5 rounded-full bg-primary"></div> {s}
+                </a>
+              ))}
             </nav>
           </div>
 
@@ -81,9 +78,9 @@ const Footer: React.FC = () => {
         <div className="border-t border-slate-800 pt-10 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-500 text-[10px] font-bold uppercase tracking-widest">
           <p>© 2024 INTEGRARSE. Todos los derechos reservados.</p>
           <div className="flex gap-8">
-            <a href="#" className="hover:text-white transition-colors">Términos de Uso</a>
-            <a href="#" className="hover:text-white transition-colors">Protección de Datos</a>
-            <a href="#" className="hover:text-white transition-colors">Mapa del Sitio</a>
+            {bottomLinks.map((link: string) => (
+              <a key={link} href="#" className="hover:text-white transition-colors">{link}</a>
+            ))}
           </div>
         </div>
       </div>
